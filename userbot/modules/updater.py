@@ -85,6 +85,15 @@ async def deploy(event, repo, ups_rem, ac_br, txt):
             return repo.__del__()
         await event.edit('`Successfully Updated!\n'
                          'Restarting, please wait...`')
+        build = app.builds(order_by='created_at', sort='desc')[0]
+        if build.status == "failed":
+            await event.edit('`Build failed!\n'
+                             'Cancelled or there were some errors...`')
+            await asyncio.sleep(5)
+            return await event.delete()
+        else:
+            await event.edit('`Successfully deployed!\n'
+                             'Restarting, please wait...`')
     else:
         await event.edit('`[HEROKU]:'
                          '\nPlease set up` **HEROKU_API_KEY** `variable.`'
@@ -108,6 +117,10 @@ async def update(event, repo, ups_rem, ac_br):
 
 @register(outgoing=True, pattern=r"^.update(?: |$)(now|deploy)?")
 async def upstream(event):
+    #Prevent Channel Bug to use update
+    if event.is_channel and not event.is_group:
+        await event.edit("`update Commad isn't permitted on channels`")
+        return
     "For .update command, check if the bot is up to date, update if specified"
     await event.edit("`Checking for updates, please wait....`")
     conf = event.pattern_match.group(1)
@@ -155,6 +168,13 @@ async def upstream(event):
     ups_rem.fetch(ac_br)
 
     changelog = await gen_chlog(repo, f'HEAD..upstream/{ac_br}')
+    """ - Special case for deploy - """
+    if conf == "deploy":
+        await event.edit('`Deploying userbot, please wait....`')
+        if changelog != '':
+            await print_changelogs(event, ac_br, changelog)
+        await deploy(event, repo, ups_rem, ac_br, txt)
+        return
 
     if changelog == '' and force_update is False:
         await event.edit(

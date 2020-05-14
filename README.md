@@ -1,3 +1,4 @@
+[![Build](https://github.com/fortifying/OUBnew/workflows/FailedChecker/badge.svg?branch=sql-extended)](https://github.com/fortifying/OUBnew/actions "Build")
 # Project OUBnew-Fortizer
 
 `
@@ -46,7 +47,7 @@ Also join <a href="https://t.me/userbotindo">Userbot INDO🇮🇩</a> Telegram G
 
 
 <h2 align="center">Credits</h2>
-<p align="center"><a href="https://github.com/fortifying/OUBnew/graphs/contributors">Big thanks for Everyone who helped me</a></p>
+<p align="center"><a href="https://github.com/fortifying/OUBnew/graphs/contributors">Big thanks for Everyone who help making this project</a></p>
 <p align="center">&nbsp;</p>
 <h2 align="center">License</h2>
 <p align="center"><a href="https://github.com/fortifying/OUBnew/blob/sql-extended/LICENSE">Fortizer@HeinzDF Public License</a> - Version 1.d, March 2020</p>

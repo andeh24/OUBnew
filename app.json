@@ -152,7 +152,12 @@
     },
     "DEFAULT_BIO": {
       "description": "Default profile bio.",
-      "value": "[PM = Report Spam] I ❤ ️@OpenUserBot",
+      "value": "Live, Love, Life",
+      "required": false
+    },
+    "SS_LAYER_KEY": {
+      "description": "Key for screencap modules. get it from https://screenshotlayer.com/product.",
+      "value": "YOUR TOKEN",
       "required": false
     },
     "ALIVE_NAME": {
@@ -169,6 +174,10 @@
     },
     "LYDIA_API_KEY": {
       "description": "This Module Needs CoffeeHouse API to work. so Join https://telegram.dog/IntellivoidDev and send #activateapi and follow instructions.",
+      "required": false
+    },
+    "GENIUS_ACCESS_TOKEN": {
+      "description": "Client Access Token from https://genius.com/api-clients.",
       "required": false
     },
     "WEATHER_DEFCITY": {

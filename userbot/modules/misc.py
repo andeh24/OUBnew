@@ -7,7 +7,7 @@
 """ Userbot module for other small commands. """
 
 from random import randint
-from asyncio import sleep
+from time import sleep
 from os import execl
 import sys
 import os
@@ -16,6 +16,7 @@ import sys
 import json
 from userbot import BOTLOG, BOTLOG_CHATID, CMD_HELP, bot, GIT_REPO_NAME, ALIVE_NAME
 from userbot.events import register
+from userbot.utils import time_formatter
 
 
 # ================= CONSTANT =================
@@ -37,29 +38,30 @@ async def randomise(items):
                      itemo[index] + "`")
 
 
-@register(outgoing=True, pattern="^.sleep( [0-9]+)?$")
+@register(outgoing=True, pattern="^.sleep ([0-9]+)$")
 async def sleepybot(time):
     """ For .sleep command, let the userbot snooze for a few second. """
-    message = time.text
-    if " " not in time.pattern_match.group(1):
-        await time.reply("Syntax: `.sleep [seconds]`")
-    else:
-        counter = int(time.pattern_match.group(1))
-        await time.edit("`I am sulking and snoozing....`")
-        await sleep(2)
-        if BOTLOG:
-            await time.client.send_message(
-                BOTLOG_CHATID,
-                "You put the bot to sleep for " + str(counter) + " seconds",
-            )
-        await sleep(counter)
-        await time.edit("`OK, I'm awake now.`")
+    counter = int(time.pattern_match.group(1))
+    await time.edit("`I am sulking and snoozing...`")
+    if BOTLOG:
+        str_counter = time_formatter(counter)
+        await time.client.send_message(
+            BOTLOG_CHATID,
+            f"You put the bot to sleep for {str_counter}.",
+        )
+    sleep(counter)
+    await time.edit("`OK, I'm awake now.`")
 
 
 @register(outgoing=True, pattern="^.shutdown$")
 async def killdabot(event):
     """ For .shutdown command, shut the bot down."""
-    await event.edit("`Shutting down` **⬢ {DEFAULTUSER} ** ..")
+    await event.edit("`Shutting down..`")
+    if event.is_channel and not event.is_group:
+        await event.edit("`shutdown commad isn't permitted on channels`")
+        return
+        
+    await event.edit("`Goodbye *Windows XP shutdown sound*....`")
     if BOTLOG:
         await event.client.send_message(BOTLOG_CHATID, "#SHUTDOWN \n"
                                         "Bot shut down")
@@ -69,6 +71,10 @@ async def killdabot(event):
 @register(outgoing=True, pattern="^.restart$")
 async def killdabot(event):
     await event.edit("`Restarting` **⬢ {DEFAULTUSER}** ..")
+    if event.is_channel and not event.is_group:
+        await event.edit("`Restart isn't permitted on channels`")
+        return
+    await event.edit("`*i would be back in a moment*`")
     if BOTLOG:
         await event.client.send_message(BOTLOG_CHATID, "#RESTART \n"
                                         "Bot Restarted")
@@ -107,7 +113,7 @@ async def creator(e):
 async def reedme(e):
     await e.edit(
         "Here's something for you to read:\n"
-        "\n[OUBnew-fortizer README.md file](https://github.com/fortifying/OUBnew/blob/phoenix/README.md)"
+        "\n[OUBnew-fortizer README.md file](https://github.com/fortifying/OUBnew/blob/sql-extended/README.md)"
         "\n[Setup Guide - Basic](https://telegra.ph/How-to-host-a-Telegram-Userbot-11-02)"
         "\n[Setup Guide - Google Drive](https://telegra.ph/How-To-Setup-Google-Drive-04-03)"
         "\n[Setup Guide - LastFM Module](https://telegra.ph/How-to-set-up-LastFM-module-for-Paperplane-userbot-11-02)"
@@ -143,7 +149,7 @@ async def repo_is_here(wannasee):
 async def myrepo_is_here(wannaseeme):
     """ For .myrepo command, just returns the repo URL. """
     await wannaseeme.edit(
-        f'Click [here](https://github.com/{GIT_REPO_NAME}/tree/phoenix/) to open {DEFAULTUSER}`s GitHub page'
+        f'Click [here](https://github.com/{GIT_REPO_NAME}/tree/sql-extended/) to open {DEFAULTUSER}`s GitHub page'
     )
 
 @register(outgoing=True, pattern="^.raw$")
