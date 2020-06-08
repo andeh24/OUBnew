@@ -33,7 +33,7 @@ trackers = f"[{trackers_list}]"
 cmd = f"aria2c \
 --enable-rpc \
 --rpc-listen-all=false \
---rpc-listen-port 6800 \
+--rpc-listen-port 8210 \
 --max-connection-per-server=10 \
 --rpc-max-request-size=1024M \
 --seed-time=0.01 \
@@ -51,7 +51,7 @@ if not os.path.isdir(TEMP_DOWNLOAD_DIRECTORY):
     os.makedirs(TEMP_DOWNLOAD_DIRECTORY)
 download_path = os.getcwd() + TEMP_DOWNLOAD_DIRECTORY.strip('.')
 
-aria2 = aria2p.API(aria2p.Client(host="http://localhost", port=6800,
+aria2 = aria2p.API(aria2p.Client(host="http://localhost", port=8210,
                                  secret=""))
 
 aria2.set_global_options({'dir': download_path})
@@ -188,9 +188,9 @@ async def check_progress_for_dl(gid, event, previous):
                 percentage = int(file.progress)
                 downloaded = percentage * int(file.total_length) / 100
                 prog_str = "`Downloading` | [{0}{1}] `{2}`".format(
-                    "".join(["●" for i in range(
+                    "".join(["▰" for i in range(
                             math.floor(percentage / 10))]),
-                    "".join(["○" for i in range(
+                    "".join(["▱" for i in range(
                             10 - math.floor(percentage / 10))]),
                     file.progress_string())
                 msg = (

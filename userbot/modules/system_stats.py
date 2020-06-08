@@ -12,16 +12,16 @@ from shutil import which
 from os import remove
 from telethon import version
 
-from userbot import CMD_HELP, ALIVE_NAME
+from userbot import CMD_HELP, ALIVE_NAME, UPSTREAM_REPO_BRANCH, OUBnew_VER, CODENAME
 from userbot.events import register
 
 # ================= CONSTANT =================
 DEFAULTUSER = str(ALIVE_NAME) if ALIVE_NAME else uname().node
+VER = str(OUBnew_VER)
+CN = str(CODENAME)
 # ============================================
 
-MODULESTR = [
-    "0"
-]
+MODULESTR = 0
 
 @register(outgoing=True, pattern="^.sysd$")
 async def sysdetails(sysd):
@@ -84,7 +84,7 @@ async def bot_ver(event):
                          "`")
     else:
         await event.edit(
-            "Shame that you don't have git, You're running 5.0 - 'Extended' anyway"
+            f"Shame that you don't have git, You're running {VER} - '{CN}' anyway"
         )
     if not event.text[0].isalpha() and event.text[0] not in ("/", "#", "@",
                                                              "!"):
@@ -181,14 +181,15 @@ async def amireallyalive(alive):
         await alive.edit("`alive Commad isn't permitted on channels`")
         return
     """ For .alive command, check if the bot is running.  """
-    await alive.edit("running on __sql-extended__ \n"  
+    await alive.edit(f"running on __{UPSTREAM_REPO_BRANCH}__ \n"  
                      "----------------------------------------\n"    
                      "`Bot Version Info` \n"
+                  f"`CODENAME : {CN} v{VER} `\n"
                   f"`Telethon : v{version.__version__} `\n"
-                  f"`Python  : v{python_version()} `\n"
+                  f"`Python   : v{python_version()} `\n"
                      "----------------------------------------\n"
                   f"`User : `{DEFAULTUSER} \n\n"
-                   "`All modules loaded with (0) errors`")
+                  f"`All modules loaded with ({MODULESTR}) errors`")
 
 
 @register(outgoing=True, pattern="^.aliveu")
