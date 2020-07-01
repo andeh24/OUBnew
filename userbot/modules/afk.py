@@ -8,12 +8,10 @@
 from datetime import datetime
 import time
 from random import choice, randint
-from asyncio import sleep
 
 from telethon.events import StopPropagation
-
 from userbot import (AFKREASON, COUNT_MSG, CMD_HELP, ISAFK, BOTLOG,
-                     BOTLOG_CHATID, USERS, PM_AUTO_BAN)
+                     BOTLOG_CHATID, USERS, PM_AUTO_BAN, bot)
 from userbot.events import register
 
 # ========================= CONSTANTS ============================
@@ -42,11 +40,6 @@ AFKSTR = [
     "Life is so short, there are so many things to do...\nI'm away doing one of them..",
     "I am not here right now...\nbut if I was...\n\nwouldn't that be awesome?",
 ]
-
-global USER_AFK  # pylint:disable=E0602
-global afk_time  # pylint:disable=E0602
-global afk_start
-global afk_end
 USER_AFK = {}
 afk_time = None
 afk_start = {}
@@ -129,6 +122,8 @@ async def mention_afk(mention):
     global afk_time  # pylint:disable=E0602
     global afk_start
     global afk_end
+    user = await bot.get_me()
+    user.username = user.first_name
     back_alivee = datetime.now()
     afk_end = back_alivee.replace(microsecond=0)
     afk_since = "a while ago"
@@ -167,7 +162,7 @@ async def mention_afk(mention):
     f"\n\nI'm AFK right now since {afk_since}"
     f"\nReason: `{AFKREASON}`")
                 else:
-                    await mention.reply(str(choice(AFKSTR)))
+                    await mention.reply(f"Sorry, but [{user.first_name}](tg://user?id={user.id}) is AFK!")
                 USERS.update({mention.sender_id: 1})
                 COUNT_MSG = COUNT_MSG + 1
             elif mention.sender_id in USERS:
@@ -176,7 +171,7 @@ async def mention_afk(mention):
     f"\n\nI'm AFK right now since {afk_since}"
     f"\nReason: `{AFKREASON}`")
                     else:
-                        await mention.reply(str(choice(AFKSTR)))
+                        await mention.reply(f"Sorry, but [{user.first_name}](tg://user?id={user.id}) is AFK!")
                     USERS[mention.sender_id] = USERS[mention.sender_id] + 1
                     COUNT_MSG = COUNT_MSG + 1
 
@@ -194,6 +189,8 @@ async def afk_on_pm(sender):
     global afk_time  # pylint:disable=E0602
     global afk_start
     global afk_end
+    user = await bot.get_me()
+    user.username = user.first_name
     back_alivee = datetime.now()
     afk_end = back_alivee.replace(microsecond=0)
     afk_since = "a while ago"
@@ -212,7 +209,7 @@ async def afk_on_pm(sender):
             datime_since_afk = now - afk_time  # pylint:disable=E0602
             time = float(datime_since_afk.seconds)
             days = time // (24 * 3600)
-            time = time % (24 * 3600)
+            time %= 24 * 3600
             hours = time // 3600
             time %= 3600
             minutes = time // 60
@@ -236,27 +233,24 @@ async def afk_on_pm(sender):
             else:
                 afk_since = f"`{int(seconds)}s` ago"
             if sender.sender_id not in USERS:
-                if AFKREASON:
-                    await sender.reply(f"{str(choice(AFKSTR))}\n"
-    f"\n\nI'm AFK right now since {afk_since}"
-    f"\nReason: `{AFKREASON}`")
-                else:
-                    await sender.reply(str(choice(AFKSTR)))
-                USERS.update({sender.sender_id: 1})
-                COUNT_MSG = COUNT_MSG + 1
-            elif apprv and sender.sender_id in USERS:
+                            if AFKREASON:
+                                await sender.reply(f"{str(choice(AFKSTR))}\n"
+                f"\n\nI'm AFK right now since {afk_since}"
+                f"\nReason: `{AFKREASON}`")
+                            else:
+                                await sender.reply(f"Sorry, but [{user.first_name}](tg://user?id={user.id}) is AFK!")
+                            USERS.update({sender.sender_id: 1})
+                            COUNT_MSG = COUNT_MSG + 1
+            elif apprv:
                 if USERS[sender.sender_id] % randint(2, 4) == 0:
                     if AFKREASON:
                         await sender.reply(f"**As I said, my Mastor is not online since** {afk_since}.\
                         \n**Leave your Message here and I'll go back soon..**\
                             \nAFK Reason: `{AFKREASON}`")
                     else:
-                        await sender.reply(str(choice(AFKSTR)))
-                    USERS[sender.sender_id] = USERS[sender.sender_id] + 1
-                    COUNT_MSG = COUNT_MSG + 1
-                else:
-                    USERS[sender.sender_id] = USERS[sender.sender_id] + 1
-                    COUNT_MSG = COUNT_MSG + 1
+                        await sender.reply(f"Sorry, but [{user.first_name}](tg://user?id={user.id}) is AFK!")
+                USERS[sender.sender_id] = USERS[sender.sender_id] + 1
+                COUNT_MSG = COUNT_MSG + 1
 
 
 CMD_HELP.update({

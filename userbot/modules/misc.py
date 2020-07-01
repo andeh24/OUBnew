@@ -10,10 +10,8 @@ from random import randint
 from time import sleep
 from os import execl
 import sys
-import os
 import io
 import sys
-import json
 from userbot import BOTLOG, BOTLOG_CHATID, CMD_HELP, bot, GIT_REPO_NAME, ALIVE_NAME
 from userbot.events import register
 from userbot.utils import time_formatter
@@ -127,7 +125,7 @@ async def repeat(rep):
 
     replyText = toBeRepeated + "\n"
 
-    for i in range(0, replyCount - 1):
+    for _ in range(replyCount - 1):
         replyText += toBeRepeated + "\n"
 
     await rep.edit(replyText)

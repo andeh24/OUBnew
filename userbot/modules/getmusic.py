@@ -1,19 +1,13 @@
 # AnggaR96s
  
 from telethon import events
-import subprocess, instantmusic
-from telethon.errors import MessageEmptyError, MessageTooLongError, MessageNotModifiedError
+import subprocess
 from telethon.errors.rpcerrorlist import YouBlockedUserError
-from telethon.tl.functions.account import UpdateNotifySettingsRequest
- 
-import io
 import asyncio
-import time
 from userbot.events import register
 from userbot import bot, CMD_HELP
 import glob
 import os
-import datetime
  
 os.system("rm -rf *.mp3")
  
@@ -25,8 +19,6 @@ def bruh(name):
 async def _(event):
     if event.fwd_from:
         return
-    DELAY_BETWEEN_EDITS = 0.3
-    PROCESS_RUN_TIME = 100
     cmd = event.pattern_match.group(1)
     reply_to_id = event.message.id
     if event.reply_to_msg_id:

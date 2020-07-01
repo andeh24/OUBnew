@@ -98,6 +98,9 @@ CONSOLE_LOGGER_VERBOSE = sb(os.environ.get("CONSOLE_LOGGER_VERBOSE", "False"))
  
 # Default .alive name
 ALIVE_NAME = os.environ.get("ALIVE_NAME", None)
+
+# Logo
+LOGO = os.environ.get("LOGO", "https://telegra.ph/file/17ce0045ed0a91a573ee7.jpg")
  
 # Google Drive Module
 G_DRIVE_CLIENT_ID = os.environ.get("G_DRIVE_CLIENT_ID", None)
@@ -222,16 +225,16 @@ async def check_botlog_chatid():
             "You must set up the BOTLOG_CHATID variable in the config.env or environment variables, for the private error log storage to work."
         )
         quit(1)
- 
+
     elif not BOTLOG_CHATID and BOTLOG:
         LOGS.info(
             "You must set up the BOTLOG_CHATID variable in the config.env or environment variables, for the userbot logging feature to work."
         )
         quit(1)
- 
-    elif not BOTLOG or not LOGSPAMMER:
+
+    elif not (BOTLOG and LOGSPAMMER):
         return
- 
+
     entity = await bot.get_entity(BOTLOG_CHATID)
     if entity.default_banned_rights.send_messages:
         LOGS.info(
@@ -250,8 +253,8 @@ with bot:
         quit(1)
  
 # Userbot ver/tag/codename
-OUBnew_VER = "4.0"
-CODENAME = "Meltdown"
+OUBnew_VER = "4.5"
+CODENAME = "Sicherheit"
  
 # Global Variables
 COUNT_MSG = 0
