@@ -16,7 +16,7 @@ from barcode.writer import ImageWriter
 
 from bs4 import BeautifulSoup
 
-from userbot import CMD_HELP
+from userbot import CMD_HELP, LOGS
 from userbot.events import register
 
 
@@ -24,11 +24,16 @@ from userbot.events import register
 async def parseqr(qr_e):
     """ For .decode command, get QR Code/BarCode content from the replied photo. """
     downloaded_file_name = await qr_e.client.download_media(
-        await qr_e.get_reply_message())
+        await qr_e.get_reply_message()
+    )
     # parse the Official ZXing webpage to decode the QRCode
     command_to_exec = [
-        "curl", "-X", "POST", "-F", "f=@" + downloaded_file_name + "",
-        "https://zxing.org/w/decode"
+        "curl",
+        "-X",
+        "POST",
+        "-F",
+        "f=@" + downloaded_file_name + "",
+        "https://zxing.org/w/decode",
     ]
     process = await asyncio.create_subprocess_exec(
         *command_to_exec,
@@ -42,10 +47,9 @@ async def parseqr(qr_e):
     t_response = stdout.decode().strip()
     os.remove(downloaded_file_name)
     if not t_response:
-        logger.info(e_response)
-        logger.info(t_response)
-        await qr_e.edit("Failed to decode.")
-        return
+        LOGS.info(e_response)
+        LOGS.info(t_response)
+        return await qr_e.edit("Failed to decode.")
     soup = BeautifulSoup(t_response, "html.parser")
     qr_contents = soup.find_all("pre")[0].text
     await qr_e.edit(qr_contents)
@@ -64,8 +68,7 @@ async def bq(event):
         previous_message = await event.get_reply_message()
         reply_msg_id = previous_message.id
         if previous_message.media:
-            downloaded_file_name = await event.client.download_media(
-                previous_message)
+            downloaded_file_name = await event.client.download_media(previous_message)
             m_list = None
             with open(downloaded_file_name, "rb") as fd:
                 m_list = fd.readlines()
@@ -80,13 +83,9 @@ async def bq(event):
 
     bar_code_type = "code128"
     try:
-        bar_code_mode_f = barcode.get(bar_code_type,
-                                      message,
-                                      writer=ImageWriter())
+        bar_code_mode_f = barcode.get(bar_code_type, message, writer=ImageWriter())
         filename = bar_code_mode_f.save(bar_code_type)
-        await event.client.send_file(event.chat_id,
-                                     filename,
-                                     reply_to=reply_msg_id)
+        await event.client.send_file(event.chat_id, filename, reply_to=reply_msg_id)
         os.remove(filename)
     except Exception as e:
         return await event.edit(str(e))
@@ -105,8 +104,7 @@ async def make_qr(makeqr):
         previous_message = await makeqr.get_reply_message()
         reply_msg_id = previous_message.id
         if previous_message.media:
-            downloaded_file_name = await makeqr.client.download_media(
-                previous_message)
+            downloaded_file_name = await makeqr.client.download_media(previous_message)
             m_list = None
             with open(downloaded_file_name, "rb") as file:
                 m_list = file.readlines()
@@ -127,25 +125,27 @@ async def make_qr(makeqr):
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
     img.save("img_file.webp", "PNG")
-    await makeqr.client.send_file(makeqr.chat_id,
-                                  "img_file.webp",
-                                  reply_to=reply_msg_id)
+    await makeqr.client.send_file(
+        makeqr.chat_id, "img_file.webp", reply_to=reply_msg_id
+    )
     os.remove("img_file.webp")
     await makeqr.delete()
 
 
-CMD_HELP.update({
-    'qr':
-    ".makeqr <content>\
+CMD_HELP.update(
+    {
+        "qr": ".makeqr <content>\
 \nUsage: Make a QR Code from the given content.\
 \nExample: .makeqr www.google.com\
 \nNote: use .decode <reply to barcode/qrcode> to get decoded content."
-})
+    }
+)
 
-CMD_HELP.update({
-    'barcode':
-    ".barcode <content>\
+CMD_HELP.update(
+    {
+        "barcode": ".barcode <content>\
 \nUsage: Make a BarCode from the given content.\
 \nExample: .barcode www.google.com\
 \nNote: use .decode <reply to barcode/qrcode> to get decoded content."
-})
+    }
+)

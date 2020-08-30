@@ -1,44 +1,17 @@
 # Copyright (C) 2019 The Raphielscape Company LLC.
 #
-# Licensed under the Raphielscape Public License, Version 1.c (the "License");
+# Licensed under the Raphielscape Public License, Version 1.d (the "License");
 # you may not use this file except in compliance with the License.
 #
-""" Userbot module containing various scrapers. """
+"""Userbot module containing various scrapers."""
  
 import os
 import time
 import asyncio
 import shutil
+import json
 from bs4 import BeautifulSoup
-import shutil
 import re
-from time import sleep
-from html import unescape
-from re import findall
-from selenium import webdriver
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.chrome.options import Options
-from urllib.parse import quote_plus
-from urllib.error import HTTPError
-from telethon import events
-from wikipedia import summary
-from wikipedia.exceptions import DisambiguationError, PageError
-from urbandict import define
-from requests import get
-from search_engine_parser import GoogleSearch
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from googletrans import LANGUAGES, Translator
-from gtts import gTTS
-from gtts.lang import tts_langs
-from emoji import get_emoji_regexp
-from youtube_dl import YoutubeDL
-from youtube_dl.utils import (DownloadError, ContentTooShortError,
-                              ExtractorError, GeoRestrictedError,
-                              MaxDownloadsReached, PostProcessingError,
-                              UnavailableVideoError, XAttrMetadataError)
-import subprocess
-from html import unescape
 from re import findall
 from urllib.parse import quote_plus
 from urllib.error import HTTPError
@@ -47,20 +20,19 @@ from wikipedia.exceptions import DisambiguationError, PageError
 from urbandict import define
 from requests import get
 from search_engine_parser import GoogleSearch
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 from googletrans import LANGUAGES, Translator
 from gtts import gTTS
 from gtts.lang import tts_langs
 from emoji import get_emoji_regexp
+from youtube_search import YoutubeSearch
 from youtube_dl import YoutubeDL
 from youtube_dl.utils import (DownloadError, ContentTooShortError,
                               ExtractorError, GeoRestrictedError,
                               MaxDownloadsReached, PostProcessingError,
                               UnavailableVideoError, XAttrMetadataError)
 from asyncio import sleep
-from userbot import (CMD_HELP, BOTLOG, BOTLOG_CHATID, YOUTUBE_API_KEY,
-                     TEMP_DOWNLOAD_DIRECTORY, CHROME_DRIVER, GOOGLE_CHROME_BIN, bot)
+from userbot import (CMD_HELP, BOTLOG, BOTLOG_CHATID,
+                     TEMP_DOWNLOAD_DIRECTORY)
 from userbot.events import register
 from telethon.tl.types import DocumentAttributeAudio
 from userbot.utils import progress, chrome, googleimagesdownload
@@ -68,16 +40,18 @@ from userbot.utils import progress, chrome, googleimagesdownload
 CARBONLANG = "auto"
 TTS_LANG = "en"
 TRT_LANG = "en"
-
+ 
+ 
 @register(outgoing=True, pattern="^.crblang (.*)")
 async def setlang(prog):
     global CARBONLANG
     CARBONLANG = prog.pattern_match.group(1)
     await prog.edit(f"Language for carbon.now.sh set to {CARBONLANG}")
-
+ 
+ 
 @register(outgoing=True, pattern="^.carbon")
 async def carbon_api(e):
-    """ A Wrapper for carbon.now.sh """
+    """A Wrapper for carbon.now.sh"""
     await e.edit("`Processing...`")
     CARBON = 'https://carbon.now.sh/?l={lang}&code={code}'
     global CARBONLANG
@@ -118,279 +92,11 @@ async def carbon_api(e):
     driver.quit()
     # Removing carbon.png after uploading
     await e.delete()  # Deleting msg
-
-@register(outgoing=True, pattern="^.carbon2")
-async def carbon_api(e):
-    """ A Wrapper for carbon.now.sh """
-    await e.edit("`Processing..`")
-    CARBON = 'https://carbon.now.sh/?bg=rgba(249%2C237%2C212%2C0)&t=synthwave-84&wt=none&l=application%2Fjson&ds=true&dsyoff=20px&dsblur=0px&wc=true&wa=true&pv=56px&ph=0px&ln=false&fl=1&fm=IBM%20Plex%20Mono&fs=14.5px&lh=153%25&si=false&es=4x&wm=false&code={code}'
-    global CARBONLANG
-    textx = await e.get_reply_message()
-    pcode = e.text
-    if pcode[8:]:
-        pcode = str(pcode[8:])
-    elif textx:
-        pcode = str(textx.message)  # Importing message to module
-    code = quote_plus(pcode)  # Converting to urlencoded
-    await e.edit("`Processing..\n25%`")
-    if os.path.isfile("/root/userbot/.bin/carbon.png"):
-        os.remove("/root/userbot/.bin/carbon.png")
-    url = CARBON.format(code=code, lang=CARBONLANG)
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.binary_location = GOOGLE_CHROME_BIN
-    chrome_options.add_argument("--window-size=1920x1080")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-gpu")
-    prefs = {'download.default_directory': '/root/userbot/.bin'}
-    chrome_options.add_experimental_option('prefs', prefs)
-    driver = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                              options=chrome_options)
-    driver.get(url)
-    await e.edit("`Processing..\n50%`")
-    download_path = '/root/userbot/.bin'
-    driver.command_executor._commands["send_command"] = (
-        "POST", '/session/$sessionId/chromium/send_command')
-    params = {
-        'cmd': 'Page.setDownloadBehavior',
-        'params': {
-            'behavior': 'allow',
-            'downloadPath': download_path
-        }
-    }
-    command_result = driver.execute("send_command", params)
-    driver.find_element_by_xpath("//button[contains(text(),'Export')]").click()
-   # driver.find_element_by_xpath("//button[contains(text(),'4x')]").click()
-   # driver.find_element_by_xpath("//button[contains(text(),'PNG')]").click()
-    await e.edit("`Processing..\n75%`")
-    # Waiting for downloading
-    while not os.path.isfile("/root/userbot/.bin/carbon.png"):
-        await sleep(0.5)
-    await e.edit("`Processing..\n100%`")
-    file = '/root/userbot/.bin/carbon.png'
-    await e.edit("`Uploading..`")
-    await e.client.send_file(
-        e.chat_id,
-        file,
-        caption="Made using [Carbon](https://carbon.now.sh/about/),\
-        \na project by [Dawn Labs](https://dawnlabs.io/)",
-        force_document=True,
-        reply_to=e.message.reply_to_msg_id,
-    )
- 
-    os.remove('/root/userbot/.bin/carbon.png')
-    driver.quit()
-    # Removing carbon.png after uploading
-    await e.delete()  # Deleting msg
-    
- 
-@register(outgoing=True, pattern="^.carbon3")
-async def carbon_api(e):
-    """ A Wrapper for carbon.now.sh """
-    await e.edit("`Processing..`")
-    CARBON = 'https://carbon.now.sh/?bg=rgba(239%2C40%2C44%2C1)&t=one-light&wt=none&l=application%2Ftypescript&ds=true&dsyoff=20px&dsblur=68px&wc=true&wa=true&pv=56px&ph=56px&ln=false&fl=1&fm=Hack&fs=14px&lh=143%25&si=false&es=2x&wm=false&code={code}'
-    global CARBONLANG
-    textx = await e.get_reply_message()
-    pcode = e.text
-    if pcode[8:]:
-        pcode = str(pcode[8:])
-    elif textx:
-        pcode = str(textx.message)  # Importing message to module
-    code = quote_plus(pcode)  # Converting to urlencoded
-    await e.edit("`Processing..\n25%`")
-    if os.path.isfile("/root/userbot/.bin/carbon.png"):
-        os.remove("/root/userbot/.bin/carbon.png")
-    url = CARBON.format(code=code, lang=CARBONLANG)
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.binary_location = GOOGLE_CHROME_BIN
-    chrome_options.add_argument("--window-size=1920x1080")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-gpu")
-    prefs = {'download.default_directory': '/root/userbot/.bin'}
-    chrome_options.add_experimental_option('prefs', prefs)
-    driver = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                              options=chrome_options)
-    driver.get(url)
-    await e.edit("`Processing..\n50%`")
-    download_path = '/root/userbot/.bin'
-    driver.command_executor._commands["send_command"] = (
-        "POST", '/session/$sessionId/chromium/send_command')
-    params = {
-        'cmd': 'Page.setDownloadBehavior',
-        'params': {
-            'behavior': 'allow',
-            'downloadPath': download_path
-        }
-    }
-    command_result = driver.execute("send_command", params)
-    driver.find_element_by_xpath("//button[contains(text(),'Export')]").click()
-   # driver.find_element_by_xpath("//button[contains(text(),'4x')]").click()
-   # driver.find_element_by_xpath("//button[contains(text(),'PNG')]").click()
-    await e.edit("`Processing..\n75%`")
-    # Waiting for downloading
-    while not os.path.isfile("/root/userbot/.bin/carbon.png"):
-        await sleep(0.5)
-    await e.edit("`Processing..\n100%`")
-    file = '/root/userbot/.bin/carbon.png'
-    await e.edit("`Uploading..`")
-    await e.client.send_file(
-        e.chat_id,
-        file,
-        caption="Made using [Carbon](https://carbon.now.sh/about/),\
-        \na project by [Dawn Labs](https://dawnlabs.io/)",
-        force_document=True,
-        reply_to=e.message.reply_to_msg_id,
-    )
- 
-    os.remove('/root/userbot/.bin/carbon.png')
-    driver.quit()
-    # Removing carbon.png after uploading
-    await e.delete()  # Deleting msg
-    
- 
-@register(outgoing=True, pattern="^.carbon4")
-async def carbon_api(e):
-    """ A Wrapper for carbon.now.sh """
-    await e.edit("`Processing..`")
-    CARBON = 'https://carbon.now.sh/?bg=rgba(74%2C144%2C226%2C1)&t=material&wt=none&l=auto&ds=false&dsyoff=20px&dsblur=68px&wc=true&wa=true&pv=56px&ph=56px&ln=false&fl=1&fm=Fira%20Code&fs=14px&lh=152%25&si=false&es=2x&wm=false&code={code}'
-    global CARBONLANG
-    textx = await e.get_reply_message()
-    pcode = e.text
-    if pcode[8:]:
-        pcode = str(pcode[8:])
-    elif textx:
-        pcode = str(textx.message)  # Importing message to module
-    code = quote_plus(pcode)  # Converting to urlencoded
-    await e.edit("`Processing..\n25%`")
-    if os.path.isfile("/root/userbot/.bin/carbon.png"):
-        os.remove("/root/userbot/.bin/carbon.png")
-    url = CARBON.format(code=code, lang=CARBONLANG)
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.binary_location = GOOGLE_CHROME_BIN
-    chrome_options.add_argument("--window-size=1920x1080")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-gpu")
-    prefs = {'download.default_directory': '/root/userbot/.bin'}
-    chrome_options.add_experimental_option('prefs', prefs)
-    driver = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                              options=chrome_options)
-    driver.get(url)
-    await e.edit("`Processing..\n50%`")
-    download_path = '/root/userbot/.bin'
-    driver.command_executor._commands["send_command"] = (
-        "POST", '/session/$sessionId/chromium/send_command')
-    params = {
-        'cmd': 'Page.setDownloadBehavior',
-        'params': {
-            'behavior': 'allow',
-            'downloadPath': download_path
-        }
-    }
-    command_result = driver.execute("send_command", params)
-    driver.find_element_by_xpath("//button[contains(text(),'Export')]").click()
-   # driver.find_element_by_xpath("//button[contains(text(),'4x')]").click()
-   # driver.find_element_by_xpath("//button[contains(text(),'PNG')]").click()
-    await e.edit("`Processing..\n75%`")
-    # Waiting for downloading
-    while not os.path.isfile("/root/userbot/.bin/carbon.png"):
-        await sleep(0.5)
-    await e.edit("`Processing..\n100%`")
-    file = '/root/userbot/.bin/carbon.png'
-    await e.edit("`Uploading..`")
-    await e.client.send_file(
-        e.chat_id,
-        file,
-        caption="Made using [Carbon](https://carbon.now.sh/about/),\
-        \na project by [Dawn Labs](https://dawnlabs.io/)",
-        force_document=True,
-        reply_to=e.message.reply_to_msg_id,
-    )
- 
-    os.remove('/root/userbot/.bin/carbon.png')
-    driver.quit()
-    # Removing carbon.png after uploading
-    await e.delete()  # Deleting msg
-    
-    
-@register(outgoing=True, pattern="^.carbon5")
-async def carbon_api(e):
-    """ A Wrapper for carbon.now.sh """
-    await e.edit("`Processing..`")
-    CARBON = 'https://carbon.now.sh/?bg=rgba(29%2C40%2C104%2C1)&t=one-light&wt=none&l=application%2Ftypescript&ds=true&dsyoff=20px&dsblur=68px&wc=true&wa=true&pv=56px&ph=56px&ln=false&fl=1&fm=Hack&fs=14px&lh=143%25&si=false&es=2x&wm=false&code={code}'
-    global CARBONLANG
-    textx = await e.get_reply_message()
-    pcode = e.text
-    if pcode[8:]:
-        pcode = str(pcode[8:])
-    elif textx:
-        pcode = str(textx.message)  # Importing message to module
-    code = quote_plus(pcode)  # Converting to urlencoded
-    await e.edit("`Processing..\n25%`")
-    if os.path.isfile("/root/userbot/.bin/carbon.png"):
-        os.remove("/root/userbot/.bin/carbon.png")
-    url = CARBON.format(code=code, lang=CARBONLANG)
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.binary_location = GOOGLE_CHROME_BIN
-    chrome_options.add_argument("--window-size=1920x1080")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-gpu")
-    prefs = {'download.default_directory': '/root/userbot/.bin'}
-    chrome_options.add_experimental_option('prefs', prefs)
-    driver = webdriver.Chrome(executable_path=CHROME_DRIVER,
-                              options=chrome_options)
-    driver.get(url)
-    await e.edit("`Processing..\n50%`")
-    download_path = '/root/userbot/.bin'
-    driver.command_executor._commands["send_command"] = (
-        "POST", '/session/$sessionId/chromium/send_command')
-    params = {
-        'cmd': 'Page.setDownloadBehavior',
-        'params': {
-            'behavior': 'allow',
-            'downloadPath': download_path
-        }
-    }
-    command_result = driver.execute("send_command", params)
-    driver.find_element_by_xpath("//button[contains(text(),'Export')]").click()
-   # driver.find_element_by_xpath("//button[contains(text(),'4x')]").click()
-   # driver.find_element_by_xpath("//button[contains(text(),'PNG')]").click()
-    await e.edit("`Processing..\n75%`")
-    # Waiting for downloading
-    while not os.path.isfile("/root/userbot/.bin/carbon.png"):
-        await sleep(0.5)
-    await e.edit("`Processing..\n100%`")
-    file = '/root/userbot/.bin/carbon.png'
-    await e.edit("`Uploading..`")
-    await e.client.send_file(
-        e.chat_id,
-        file,
-        caption="Made using [Carbon](https://carbon.now.sh/about/),\
-        \na project by [Dawn Labs](https://dawnlabs.io/)",
-        force_document=True,
-        reply_to=e.message.reply_to_msg_id,
-    )
- 
-    os.remove('/root/userbot/.bin/carbon.png')
-    driver.quit()
-    # Removing carbon.png after uploading
-    await e.delete()  # Deleting msg
- 
-    os.remove(file_path)
-    driver.quit()
-    # Removing carbon.png after uploading
-    await e.delete()  # Deleting msg
  
  
 @register(outgoing=True, pattern="^.img (.*)")
 async def img_sampler(event):
-    """ For .img command, search and return images matching the query. """
+    """For .img command, search and return images matching the query."""
     await event.edit("`Processing...`")
     query = event.pattern_match.group(1)
     lim = findall(r"lim=\d+", query)
@@ -448,7 +154,7 @@ async def moni(event):
  
 @register(outgoing=True, pattern=r"^.google (.*)")
 async def gsearch(q_event):
-    """ For .google command, do a Google search. """
+    """For .google command, do a Google search."""
     match = q_event.pattern_match.group(1)
     page = findall(r"page=\d+", match)
     try:
@@ -461,7 +167,7 @@ async def gsearch(q_event):
     gsearch = GoogleSearch()
     gresults = await gsearch.async_search(*search_args)
     msg = ""
-    for i in range(10):
+    for i in range(7):
         try:
             title = gresults["titles"][i]
             link = gresults["links"][i]
@@ -482,7 +188,7 @@ async def gsearch(q_event):
  
 @register(outgoing=True, pattern=r"^.wiki (.*)")
 async def wiki(wiki_q):
-    """ For .wiki command, fetch content from Wikipedia. """
+    """For .wiki command, fetch content from Wikipedia."""
     match = wiki_q.pattern_match.group(1)
     try:
         summary(match)
@@ -511,7 +217,7 @@ async def wiki(wiki_q):
  
 @register(outgoing=True, pattern="^.ud (.*)")
 async def urban_dict(ud_e):
-    """ For .ud command, fetch content from Urban Dictionary. """
+    """For .ud command, fetch content from Urban Dictionary."""
     await ud_e.edit("Processing...")
     query = ud_e.pattern_match.group(1)
     try:
@@ -549,7 +255,7 @@ async def urban_dict(ud_e):
  
 @register(outgoing=True, pattern=r"^.tts(?: |$)([\s\S]*)")
 async def text_to_speech(query):
-    """ For .tts command, a wrapper for Google Text-to-Speech. """
+    """For .tts command, a wrapper for Google Text-to-Speech."""
     textx = await query.get_reply_message()
     message = query.pattern_match.group(1)
     if message:
@@ -671,7 +377,7 @@ async def imdb(e):
  
 @register(outgoing=True, pattern=r"^.trt(?: |$)([\s\S]*)")
 async def translateme(trans):
-    """ For .trt command, translate the given text using Google Translate. """
+    """For .trt command, translate the given text using Google Translate."""
     translator = Translator()
     textx = await trans.get_reply_message()
     message = trans.pattern_match.group(1)
@@ -701,7 +407,7 @@ async def translateme(trans):
  
 @register(pattern=".lang (trt|tts) (.*)", outgoing=True)
 async def lang(value):
-    """ For .lang command, change the default langauge of userbot scrapers. """
+    """For .lang command, change the default langauge of userbot scrapers."""
     util = value.pattern_match.group(1).lower()
     if util == "trt":
         scraper = "Translator"
@@ -734,69 +440,24 @@ async def lang(value):
  
 @register(outgoing=True, pattern="^.yt (.*)")
 async def yt_search(video_q):
-    """ For .yt command, do a YouTube search from Telegram. """
+    """For .yt command, do a YouTube search from Telegram."""
     query = video_q.pattern_match.group(1)
-    result = ''
- 
-    if not YOUTUBE_API_KEY:
-        return await video_q.edit(
-            "`Error: YouTube API key missing! Add it to environment vars or config.env.`"
-        )
- 
-    await video_q.edit("```Processing...```")
- 
-    full_response = await youtube_search(query)
-    videos_json = full_response[1]
- 
-    for video in videos_json:
-        title = f"{unescape(video['snippet']['title'])}"
-        link = f"https://youtu.be/{video['id']['videoId']}"
-        result += f"{title}\n{link}\n\n"
- 
-    reply_text = f"**Search Query:**\n`{query}`\n\n**Results:**\n\n{result}"
- 
-    await video_q.edit(reply_text)
- 
- 
-async def youtube_search(query,
-                         order="relevance",
-                         token=None,
-                         location=None,
-                         location_radius=None):
-    """ Do a YouTube search. """
-    youtube = build('youtube',
-                    'v3',
-                    developerKey=YOUTUBE_API_KEY,
-                    cache_discovery=False)
-    search_response = youtube.search().list(
-        q=query,
-        type="video",
-        pageToken=token,
-        order=order,
-        part="id,snippet",
-        maxResults=10,
-        location=location,
-        locationRadius=location_radius).execute()
- 
-    videos = []
- 
-    for search_result in search_response.get("items", []):
-        if search_result["id"]["kind"] == "youtube#video":
-            videos.append(search_result)
+    if not query:
+        await video_q.edit("`Enter query to search`")
+    await video_q.edit("`Processing...`")
     try:
-        nexttok = search_response["nextPageToken"]
-        return (nexttok, videos)
-    except HttpError:
-        nexttok = "last_page"
-        return (nexttok, videos)
+        results = json.loads(YoutubeSearch(query, max_results=7).to_json())
     except KeyError:
-        nexttok = "KeyError, try again."
-        return (nexttok, videos)
+        return await video_q.edit("`Youtube Search gone retard.\nCan't search this query!`")
+    output = f"**Search Query:**\n`{query}`\n\n**Results:**\n\n"
+    for i in results["videos"]:
+        output += (f"● `{i['title']}`\nhttps://www.youtube.com{i['url_suffix']}\n\n")
+    await video_q.edit(output, link_preview=False)
  
  
 @register(outgoing=True, pattern=r".rip(audio|video) (.*)")
 async def download_video(v_url):
-    """ For .rip command, download media from YouTube and many other sites. """
+    """For .rip command, download media from YouTube and many other sites."""
     url = v_url.pattern_match.group(2)
     type = v_url.pattern_match.group(1).lower()
  
@@ -922,43 +583,56 @@ async def download_video(v_url):
  
  
 def deEmojify(inputString):
-    """ Remove emojis and other non-safe characters from string """
+    """Remove emojis and other non-safe characters from string"""
+    return get_emoji_regexp().sub(u'', inputString)
+ 
+ 
+def deEmojify(inputString):
+    """Remove emojis and other non-safe characters from string"""
     return get_emoji_regexp().sub(u'', inputString)
  
  
 CMD_HELP.update({
-    "img":
-    ">`.img <search_query>`"
-    "\nUsage: Does an image search on Google and shows 5 images.",
-    "currency":
-    ">`.currency <amount> <from> <to>`"
-    "\nUsage: Converts various currencies for you.",
-    "google":
-    ">`.google <query>`"
-    "\nUsage: Does a search on Google.",
-    "wiki":
-    ">`.wiki <query>`"
-    "\nUsage: Does a search on Wikipedia.",
-    "ud":
-    ">`.ud <query>`"
-    "\nUsage: Does a search on Urban Dictionary.",
-    "tts":
-    ">`.tts <text> [or reply]`"
-    "\nUsage: Translates text to speech for the language which is set."
-    "\nUse >`.lang tts <language code>` to set language for tts. (Default is English.)",
-    "trt":
-    ">`.trt <text> [or reply]`"
-    "\nUsage: Translates text to the language which is set."
-    "\nUse >`.lang trt <language code>` to set language for trt. (Default is English)",
-    "yt":
-    ">`.yt <text>`"
-    "\nUsage: Does a YouTube search.",
-    "imdb":
-    ">`.imdb <movie-name>`"
-    "\nUsage: Shows movie info and other stuff.",
-    "rip":
-    ">`.ripaudio <url> or ripvideo <url>`"
-    "\nUsage: Download videos and songs from YouTube "
-    "(and [many other sites](https://ytdl-org.github.io/youtube-dl/supportedsites.html))."
+    'img':
+    '`.img` <search_query>\
+        \nUsage: Does an image search on Google and shows 5 images.'
+})
+CMD_HELP.update({
+    'currency':
+    '`.currency` <amount> <from> <to>\
+        \nUsage: Converts various currencies for you.'
+})
+CMD_HELP.update({
+    'carbon':
+    '`.carbon` <text> [or reply]\
+        \nUsage: Beautify your code using carbon.now.sh\nUse .crblang <text> to set language for your code.'
+})
+CMD_HELP.update(
+    {'google': '`.google` <query>\
+        \nUsage: Does a search on Google.'})
+CMD_HELP.update(
+    {'wiki': '`.wiki` <query>\
+        \nUsage: Does a search on Wikipedia.'})
+CMD_HELP.update(
+    {'ud': '`.ud` <query>\
+        \nUsage: Does a search on Urban Dictionary.'})
+CMD_HELP.update({
+    'tts':
+    '`.tts` <text> [or reply]\
+        \nUsage: Translates text to speech for the language which is set.\nUse .lang tts <language code> to set language for tts. (Default is English.)'
+})
+CMD_HELP.update({
+    'trt':
+    '`.trt` <text> [or reply]\
+        \nUsage: Translates text to the language which is set.\nUse .lang trt <language code> to set language for trt. (Default is English)'
+})
+CMD_HELP.update({'yt': '`.yt` <text>\
+        \nUsage: Does a YouTube search.'})
+CMD_HELP.update(
+    {"imdb": "`.imdb` <movie-name>\nShows movie info and other stuff."})
+CMD_HELP.update({
+    'rip':
+    '`.ripaudio` <url> or ripvideo <url>\
+        \nUsage: Download videos and songs from YouTube (and [many other sites](https://ytdl-org.github.io/youtube-dl/supportedsites.html)).'
 })
  
